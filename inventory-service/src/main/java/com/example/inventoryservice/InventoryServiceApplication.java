@@ -5,6 +5,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+
+import java.util.*;
+
 @SpringBootApplication
 public class InventoryServiceApplication {
 	public static void main(String[] args) {
@@ -16,11 +19,16 @@ public class InventoryServiceApplication {
 			Inventory inventory = new Inventory();
 			inventory.setSkuCode("iphone_14");
 			inventory.setQuantity(2);
-			inventoryRepository.save(inventory);
+
 			Inventory inventory1 = new Inventory();
 			inventory1.setSkuCode("iphone_15");
 			inventory1.setQuantity(5);
-			inventoryRepository.save(inventory1);
+
+			List<Inventory> inventoryList = inventoryRepository.findAll();
+			if (inventoryList.isEmpty()) {
+				inventoryRepository.save(inventory);
+				inventoryRepository.save(inventory1);
+			}
 		};
 	}
 }
