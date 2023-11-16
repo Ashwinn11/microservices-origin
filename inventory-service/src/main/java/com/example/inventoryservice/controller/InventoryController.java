@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 public class InventoryController {
     @Autowired
     private InventoryService inventoryService;
-    @GetMapping
+    @GetMapping("/sku-code")
     @ResponseStatus(HttpStatus.OK)
-    public boolean isInStock(@PathVariable String skuCode){
+    public boolean isInStock(@PathVariable("sku-code") String skuCode){
         return inventoryService.isInStock(skuCode);
     }
 }
