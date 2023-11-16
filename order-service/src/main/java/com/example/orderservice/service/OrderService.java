@@ -1,8 +1,8 @@
 package com.example.orderservice.service;
-import com.example.orderservice.model.Order;
 import com.example.orderservice.model.OrderDTO;
 import com.example.orderservice.model.OrderDtoItems;
 import com.example.orderservice.model.OrderLineItems;
+import com.example.orderservice.model.OrderList;
 import com.example.orderservice.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,14 +16,14 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
     public void placeOrder(OrderDtoItems orderDtoItems){
-        Order order = new Order();
-        order.setOrderNo(UUID.randomUUID().toString());
+        OrderList order = new OrderList();
+        order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderLineItems> orderLineItemsList= orderDtoItems
                 .getOrderItemsDtoList()
                 .stream()
                 .map(this::mapToDTO)
                 .toList();
-        order.setOrderItems(orderLineItemsList);
+        order.setOrderLineItemsList(orderLineItemsList);
         orderRepository.save(order);
     }
     private OrderLineItems mapToDTO(OrderDTO orderDTO) {

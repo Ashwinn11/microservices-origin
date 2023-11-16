@@ -1,21 +1,19 @@
 package com.example.orderservice.model;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Order {
+public class OrderList {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
-    private String orderNo;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long orderId;
+    private String orderNumber;
     @OneToMany(cascade = CascadeType.ALL)
-    private List<OrderLineItems> orderItems;
+    private List<OrderLineItems> orderLineItemsList;
 }
