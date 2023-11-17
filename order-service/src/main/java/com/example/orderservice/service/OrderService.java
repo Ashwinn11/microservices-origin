@@ -1,14 +1,12 @@
 package com.example.orderservice.service;
-import com.example.orderservice.model.OrderDTO;
-import com.example.orderservice.model.OrderDtoItems;
-import com.example.orderservice.model.OrderLineItems;
-import com.example.orderservice.model.OrderList;
+import com.example.orderservice.model.*;
 import com.example.orderservice.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 @Service
@@ -27,10 +25,24 @@ public class OrderService {
                 .map(this::mapToDTO)
                 .toList();
         order.setOrderLineItemsList(orderLineItemsList);
-        Boolean result = webClient.get().uri("http://localhost:8081/api/inventory")
-                        .retrieve().bodyToMono(Boolean.class).block();
-        if (Boolean.TRUE.equals(result)) orderRepository.save(order);
-        else throw new IllegalArgumentException("Product is not available at this moment. Please try later!");
+
+        // collecting all the skuCodes from the orderLineItems
+        List<String> skuCodes = order.getOrderLineItemsList().stream().map(OrderLineItems::getSkuCode).toList();
+
+        // calling the inventory response to check whether the product is in stock or not using web client for synchronous communication
+        InventoryResponse[] inventoryResponses = webClient.get().uri("http://localhost:8081/api/inventory",
+                        uriBuilder -> uriBuilder.queryParam("skuCode",skuCodes).build())
+                        .retrieve().bodyToMono(InventoryResponse[].class).block();
+
+        // after getting the inventory response from the inventory service, order service will proceed to save the orders in repo
+        boolean allProductsInStock = Arrays.stream(inventoryResponses).allMatch(InventoryResponse::isInStock);
+        if (allProductsInStock) {
+            orderRepository.save(order);
+        }
+
+        else {
+            throw new IllegalArgumentException("Product is not available at this moment. Please try later!");
+        }
     }
     private OrderLineItems mapToDTO(OrderDTO orderDTO) {
         OrderLineItems orderLineItems = new OrderLineItems();
@@ -39,5 +51,4 @@ public class OrderService {
         orderLineItems.setSkuCode(orderDTO.getSkuCode());
         return orderLineItems;
     }
-
 }
