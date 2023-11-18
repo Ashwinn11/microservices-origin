@@ -15,7 +15,7 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
-    private WebClient webClient;
+    private WebClient.Builder webClient;
     public void placeOrder(OrderDtoItems orderDtoItems){
         OrderList order = new OrderList();
         order.setOrderNumber(UUID.randomUUID().toString());
@@ -30,7 +30,7 @@ public class OrderService {
         List<String> skuCodes = order.getOrderLineItemsList().stream().map(OrderLineItems::getSkuCode).toList();
 
         // calling the inventory response to check whether the product is in stock or not using web client for synchronous communication
-        InventoryResponse[] inventoryResponses = webClient.get().uri("http://localhost:8081/api/inventory",
+        InventoryResponse[] inventoryResponses = webClient.build().get().uri("http://inventory-service/api/inventory",
                         uriBuilder -> uriBuilder.queryParam("skuCode",skuCodes).build())
                         .retrieve().bodyToMono(InventoryResponse[].class).block();
 
