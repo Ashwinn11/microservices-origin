@@ -16,7 +16,7 @@ public class OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private WebClient.Builder webClient;
-    public void placeOrder(OrderDtoItems orderDtoItems){
+    public String placeOrder(OrderDtoItems orderDtoItems){
         OrderList order = new OrderList();
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderLineItems> orderLineItemsList= orderDtoItems
@@ -38,6 +38,7 @@ public class OrderService {
         boolean allProductsInStock = Arrays.stream(inventoryResponses).allMatch(InventoryResponse::isInStock);
         if (allProductsInStock) {
             orderRepository.save(order);
+            return "Order placed successfully!";
         }
 
         else {
