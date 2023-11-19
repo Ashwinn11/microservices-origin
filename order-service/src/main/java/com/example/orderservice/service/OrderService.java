@@ -1,7 +1,10 @@
 package com.example.orderservice.service;
+import com.example.orderservice.event.OrderPlaced;
 import com.example.orderservice.model.*;
 import com.example.orderservice.repository.OrderRepository;
+import org.apache.kafka.common.message.OffsetCommitRequestData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,6 +19,9 @@ public class OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private WebClient.Builder webClient;
+
+    @Autowired
+    private KafkaTemplate<String,OrderPlaced> kafkaTemplate;
     public String placeOrder(OrderDtoItems orderDtoItems){
         OrderList order = new OrderList();
         order.setOrderNumber(UUID.randomUUID().toString());
@@ -35,9 +41,11 @@ public class OrderService {
                         .retrieve().bodyToMono(InventoryResponse[].class).block();
 
         // after getting the inventory response from the inventory service, order service will proceed to save the orders in repo
+        assert inventoryResponses != null;
         boolean allProductsInStock = Arrays.stream(inventoryResponses).allMatch(InventoryResponse::isInStock);
         if (allProductsInStock) {
             orderRepository.save(order);
+            kafkaTemplate.send("notificationTopic",new OrderPlaced(order.getOrderNumber()));
             return "Order placed successfully!";
         }
 
